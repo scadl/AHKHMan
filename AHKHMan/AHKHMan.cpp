@@ -3,19 +3,58 @@
 
 #include "pch.h"
 #include <iostream>
+#include <Windows.h>
+
+using namespace std;
 
 int main()
 {
-    std::cout << "Hello World!\n"; 
+	char a[10] = "";
+
+	cout << "=== AHK_H Manager by scadl===\nStarting Autohotkey.DLL Link..\n";
+
+	HINSTANCE handle = LoadLibrary(L"AutoHotkey.dll");
+
+	typedef UINT (*pahkdll)(LPCWSTR script, LPCWSTR p1, LPCWSTR p2);
+	typedef BOOL (*pAhkExec)(LPCWSTR msg);
+	typedef BOOL (*pahkReady)(void);
+
+	if (handle == NULL){
+		Sleep(10);
+		DWORD err = GetLastError();
+		cerr << "DLL Link Error: " << err << "\n";
+	}
+	else 
+	{
+		
+		cout << "Autohotkey.DLL Link OK!\nRunning Functions init...\n";
+
+		pahkdll ahkdll = (pahkdll)GetProcAddress(handle, "ahkdll");
+		pAhkExec AhkExec = (pAhkExec)GetProcAddress(handle, "AhkExec");
+		pahkReady ahkReady = (pahkReady)GetProcAddress(handle, "ahkReady");
+
+		cout << "Functions initalized: ahkdll, ahkexec, ahkready.\n";
+		
+		if (AhkExec!=NULL) {
+			
+			cout << "Cleaning memomry space...\n";
+			ahkdll(L"", L"", L"");
+
+			while (!ahkReady()) {
+				Sleep(10);
+			}
+			cout << "AHK core load finished.\nLunching AHK script...\n";
+
+			AhkExec(L"MsgBox(\"HI i am an ahk script runinned by C++ app!\", \"Dynamic AHK\", \"OK\")");
+		}
+		else
+		{
+			DWORD err = GetLastError();
+			cout << "External func error:" << err << "\n";
+		}
+		
+	}
+
+    cout << "AHK execution finished\nTank you for using my ahk controller!\n"; 
+	cin >> a;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
