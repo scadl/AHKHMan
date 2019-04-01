@@ -13,6 +13,14 @@ using namespace System;
 
 using namespace AutoHotkey;
 
+void MarshalString(String ^ s, string& os) {
+	using namespace Runtime::InteropServices;
+	const char* chars =
+		(const char*)(Marshal::StringToHGlobalAnsi(s)).ToPointer();
+	os = chars;
+	Marshal::FreeHGlobal(IntPtr((void*)chars));
+}
+
 int main()
 {
 	char a[10] = "";
@@ -36,7 +44,11 @@ int main()
 						
 	Object^ varPtr = myThread->ahkgetvar("MyVar", FALSE);
 	String^ outVar = varPtr->ToString();
-	Console::WriteLine("Got data from AHK thread: {0}", outVar);	
+	//Console::WriteLine("Got data from AHK thread: {0}", outVar);	
+
+	string strVar = "";
+	MarshalString(outVar, strVar);
+	cout << "Got data from AHK thread: " << strVar << endl;
 			
 	cout << "AHK execution finished\n";
 	cout << "Thank you for using my ahk controller!\n";
