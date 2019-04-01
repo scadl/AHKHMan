@@ -1,9 +1,6 @@
 // AHKHMan.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include <msclr/marshal_cppstd.h>
-using namespace msclr::interop;
-
 #include "pch.h"
 #include <iostream>
 #include <string>
@@ -13,71 +10,35 @@ using namespace msclr::interop;
 
 using namespace std;
 using namespace System;
-using namespace System::Runtime::InteropServices;
 
-
+using namespace AutoHotkey;
 
 int main()
 {
 	char a[10] = "";
 
-	cout << "=== AHK_H Manager by scadl===\n\nStarting Autohotkey.DLL Link..\n";
+	cout << "=== AHK_H Manager by scadl===\n\n";
+	cout << "Searching for AutoHotkey COM Link..\n";
 
-	HINSTANCE handle = LoadLibrary(L"AutoHotkey.dll");
+	CoCOMServerClass^ myThread = gcnew CoCOMServerClass;		
+	cout << "Autohotkey Interface OK!\n";
+		
+	cout << "Cleaning memomry space.\n";
+	myThread->ahkdll("", "", "");
 
-	typedef UINT (*pahkdll)(LPCWSTR script, LPCWSTR p1, LPCWSTR p2);
-	typedef BOOL (*pAhkExec)(LPCWSTR msg);
-	typedef BOOL (*pahkReady)(void);
-	typedef IntPtr (*pGetVar)(LPCWSTR varName, bool VP);
-
-	if (handle == NULL){
+	while (!myThread->ahkReady()) {
 		Sleep(10);
-		DWORD err = GetLastError();
-		cerr << "DLL Link Error: " << err << "\n";
 	}
-	else 
-	{
-		
-		cout << "Autohotkey.DLL Link OK!\n\nRunning Functions init...\n";
-
-		pahkdll ahkdll = (pahkdll)GetProcAddress(handle, "ahkdll");
-		pAhkExec AhkExec = (pAhkExec)GetProcAddress(handle, "AhkExec");
-		pahkReady ahkReady = (pahkReady)GetProcAddress(handle, "ahkReady");
-		pGetVar ahkGetVar = (pGetVar)GetProcAddress(handle, "ahkgetvar");
-
-		cout << "Functions initalized: ahkdll, ahkexec, ahkready.\n\n";
-		
-		if (AhkExec!=NULL) {
+	cout << "AHK core load finished.\n\n";
 			
-			cout << "Cleaning memomry space.\n";
-			ahkdll(L"", L"", L"");
-
-			while (!ahkReady()) {
-				Sleep(10);
-			}
-			cout << "AHK core load finished.\n\nLunching AHK script...\n";
-
-			AhkExec(L"MyVar := InputBox(\"HI i am an ahk script runinned by C++ app! Type something to the input box to send my parent\", \"Dynamic AHK\")");
-			if (ahkGetVar != NULL) {				
-				IntPtr varPtr = ahkGetVar(L"MyVar", false);
-				String^ strVar = Marshal::PtrToStringAuto(varPtr);
-				//string outVar = marshal_as< string >(strVar);
-				//cout << "Got data from AHK thread: " << to_string(strVar) << endl;
-				//Console::WriteLine("Got data from AHK thread: {0}", strVar);
-			} else {				
-				DWORD err = GetLastError();
-				cout << "ahkGetVar not working: " << err << "\n";
-			}
-
-		}
-		else
-		{
-			DWORD err = GetLastError();
-			cout << "ahkExec error:" << err << "\n";
-		}
-		
-	}
-
-    cout << "AHK execution finished\nTank you for using my ahk controller!\n"; 
+	cout << "Lunching AHK script...\n";
+	myThread->ahkExec("MyVar := InputBox(\"HI i am an ahk script runinned by C++ app! `nType something to the input box to send my parent\", \"Dynamic AHK\")");
+						
+	Object^ varPtr = myThread->ahkgetvar("MyVar", FALSE);
+	String^ outVar = varPtr->ToString();
+	Console::WriteLine("Got data from AHK thread: {0}", outVar);	
+			
+	cout << "AHK execution finished\n";
+	cout << "Thank you for using my ahk controller!\n";
 	cin >> a;
 }
