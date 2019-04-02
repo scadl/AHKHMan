@@ -1,0 +1,2 @@
+# AHKMan
+This minimalistic app is really simple xample of how you can use AHK functionality in your own C++ app. I made this in CLI type app, but you can use it any other type, like MFC or other. The curent version uses COM interface to comunicate with DLL -- this reaures you to have autohotkey.dll to be registred in your system. If you don't like this, look at early commits, wher you can find the code for dynamic link to this dll.
